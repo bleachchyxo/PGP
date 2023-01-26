@@ -2,22 +2,39 @@
 
 hexadecimalGenerator() {
 
-        head -c 256 /dev/urandom | xxd -p -u -c 256 | tr -d '[:space:]\\'
-
-}
-
-witnessGenerator() {
-
-        witnessLimit=$(echo "obase=16;ibase=16; ${n} - 2" | bc | tr -d '[:space:]\\')
-        randomHexNumber="$(cat /dev/urandom | tr -dc '0-9' | head -c $((${#n} + 1)))"
-        randomModulus="$(echo "obase=16;ibase=16; ${randomHexNumber} % ${witnessLimit}" | bc | tr -d '[:space:]\\')"
-
-        echo "obase=16;ibase=16; ${randomModulus} + 2" | bc | tr -d '[:space:]\\'
+        xxd -p -u /dev/urandom | head -c 260 | tr -d '[:space:]\\'
 
 }
 
 p="$(hexadecimalGenerator)"
 q="$(hexadecimalGenerator)"
-n=$(echo "obase=16;ibase=16; ${p} * ${q}" | bc | tr -d '[:space:]\\')
-witness="$(witnessGenerator)"
-predecessor="$(echo "obase=16;ibase=16; ${n} - 1" | bc | tr -d '[:space:]\\')"
+
+primalityTest() {
+
+        #base generation
+        local n=$1
+        baseMaximumLimit="$(echo "obase=16;ibase=16; ${n} - 2" | bc | tr -d '[:space:]\\')"
+        baseRange="$((1+RANDOM%260))"
+        randomValue="$(xxd -p -u /dev/urandom | head -c $baseRange | tr -d '[:space:]\\')"
+        baseMinimumLimit="$(echo "obase=16;ibase=16; ${randomValue} + 2" | bc | tr -d '[:space:]\\')"
+        base="$(echo "obase=16;ibase=16; ${baseMinimumLimit} % ${baseMaximumLimit}" | bc | tr -d '[:space:]\\')"
+
+        #quotient
+        subtraction="$(echo "obase=16;ibase=16; ${n} - 1" | bc | tr -d '[:space:]\\')"
+        dividend="$subtraction"
+
+        while [[ "${remainder}" -eq "0" ]]
+        do
+                division="$(echo "obase=16;ibase=16; ${dividend} / 2" | bc | tr -d '[:space:]\\')"
+                remainder="$(echo "obase=16;ibase=16; ${dividend} % 2" | bc | tr -d '[:space:]\\')"
+                quotient="$dividend"
+                dividend="$division"
+        done
+        
+        echo "$quotient"
+
+}
+
+b=$(primalityTest $q)
+
+echo "$b"
