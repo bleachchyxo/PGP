@@ -1,9 +1,7 @@
 #!/bin/bash
 
 hexadecimalGenerator() {
-
         xxd -p -u /dev/urandom | head -c 260 | tr -d '[:space:]\\'
-
 }
 
 p="$(hexadecimalGenerator)"
@@ -30,9 +28,15 @@ primalityTest() {
                 quotient="$dividend"
                 dividend="$division"
         done
-        
-        echo "$quotient"
 
+        x="$(echo "obase=16;ibase=16; ${base} % ${n}" | bc | tr -d '[:space:]\\')"
+        b="$(echo "obase=2;$quotient" | bc | tr -d '[:space:]\\')"
+        for ((i=0; i<${#b}; i++)) do
+                cache=${b:$i:1}
+                [[ $cache == 0 ]] && x="$(echo "obase=16;ibase=16; ${x} * ${x} % ${n}" | bc | tr -d '[:space:]\\')" || x="$(echo "obase=16;ibase=16; ${x} * ${base} % ${n}" | bc | tr -d '[:space:]\\')"
+        done
+
+        echo $x
 }
 
 b=$(primalityTest $q)
